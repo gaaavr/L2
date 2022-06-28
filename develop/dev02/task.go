@@ -24,7 +24,7 @@ qwe\\5 => qwe\\\\\ (*)
 
 func main() {
 	// Подаём функции на вход строку для распаковки
-	unpack, err := unpackingString("qw1e2\\4\\53\\\\6")
+	unpack, err := unpackingString("qwe\\45")
 	// Если возвращается не нулевая ошибка, выводим её с пустой строкой и выходим из программы
 	if err != nil {
 		fmt.Println(unpack, err)
