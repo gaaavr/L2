@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"sort"
 	"strconv"
@@ -46,12 +45,14 @@ func main() {
 	// Задаём и парсим аргументы командной строки
 	args, err := setFlags()
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println(err)
+		return
 	}
 	// Открываем и считываем данные из файла, названия которого указывается в командной строке
 	data, err := openReadFile(args)
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Println(err)
+		return
 	}
 	// Проверка и приведение номера сортируемой колонки к нужному индексу
 	if args.k < 1 {
@@ -76,12 +77,13 @@ func main() {
 
 	// Запись отсортированных данных в файл, указанный в аргументах командной строки
 	if err = writeToFile(data, args); err != nil {
-		log.Fatalln(err)
+		fmt.Println(err)
+		return
 	}
 
 }
 
-// Функция для  распарсивания аргументов командной строк
+// Функция для  распарсивания аргументов командной строки
 func setFlags() (arguments, error) {
 	// Объявляем переменные для хранения значений флага
 	var (
