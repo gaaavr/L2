@@ -51,15 +51,21 @@ func main() {
 	if args.n {
 		// При совпадении строк выводится позиция вхождения
 		if args.idx >= 0 {
+			fmt.Println()
 			fmt.Printf("-n:\n\tПозиция строки '%s': %d\n", args.oldMatch, args.idx+1)
+			fmt.Println()
 		} else {
+			fmt.Println()
 			fmt.Printf("-n:\n\tСтрока '%s' не найдена\n", args.oldMatch)
+			fmt.Println()
 		}
 	}
 	if args.c {
 		// Подсчитывается количество вхождений в строки совпадающих слов
 		count := countString(args, rows)
+		fmt.Println()
 		fmt.Printf("-c:\n\tКоличество строк, содержащих '%s': %d\n", args.oldMatch, count)
+		fmt.Println()
 	}
 
 	if args.v {
@@ -68,15 +74,23 @@ func main() {
 			removeString(args, rows)
 			return
 		} else {
+			fmt.Println()
 			fmt.Printf("-v:\n\tСтрока '%s' не найдена\n", args.oldMatch)
+			fmt.Println()
 			return
 		}
 	}
-	if args.A > 0 {
+	// Если передан аргумент А, то выводим необходимое количество строк после совпадения
+	if args.A > 0 && args.idx >= 0 {
 		findStringAfter(args, rows)
 	}
-	if args.B > 0 {
+	// Если передан аргумент B, то выводим необходимое количество строк перед совпадением
+	if args.B > 0 && args.idx >= 0 {
 		findStringBefore(args, rows)
+	}
+	// Если передан аргумент C, то выводим строки до и после совпадения
+	if args.C > 0 && args.idx >= 0 {
+		findStringAround(args, rows)
 	}
 }
 
@@ -199,11 +213,14 @@ func removeString(args arguments, rows []string) {
 			}
 		}
 	}
-
+	fmt.Println()
 	fmt.Printf("-v:\n\tДанные после удаления строки '%s':\n%s\n", args.oldMatch, strings.Join(rows, "\n"))
+	fmt.Println()
 }
 
+// Функция выводит заданное количество строк после строки вхождения искомого слова
 func findStringAfter(args arguments, rows []string) {
+	fmt.Println()
 	fmt.Printf("-A:\n\tСтроки после совпадения с '%s':\n", args.oldMatch)
 	rows = rows[args.idx+1:]
 	for i, v := range rows {
@@ -212,16 +229,46 @@ func findStringAfter(args arguments, rows []string) {
 			break
 		}
 	}
+	fmt.Println()
 }
 
+// Функция выводит заданное количество строк перед строкой вхождения искомого слова
 func findStringBefore(args arguments, rows []string) {
+	fmt.Println()
 	fmt.Printf("-B:\n\tСтроки перед совпадением с '%s':\n", args.oldMatch)
 	rows = rows[:args.idx]
-	for i := len(rows) - 1; i > 0; i-- {
+	for i := len(rows) - 1; i >= 0; i-- {
 		fmt.Println(rows[i])
 		args.B--
 		if args.B == 0 {
 			break
 		}
 	}
+	fmt.Println()
+}
+
+// Функция выводит заданное количество строк перед строкой вхождения искомого слова и после него
+func findStringAround(args arguments, rows []string) {
+	fmt.Println()
+	// Если количество строк в аргументе превышает длину массива строк,
+	// то ограничиваем это количество длинной массива
+	var countRows = args.C
+	if args.C > len(rows[:args.idx]) {
+		countRows = len(rows[:args.idx])
+	}
+	// Выводим сначала строки до вхождения, затем после
+	rowsAround := rows[args.idx-(countRows) : args.idx]
+	for _, v := range rowsAround {
+		fmt.Println(v)
+	}
+	fmt.Printf("-C:\tСтроки вокруг совпадения с '%s':\n", args.oldMatch)
+	countRows = args.C
+	if args.C > len(rows[args.idx+1:]) {
+		countRows = len(rows[args.idx+1:])
+	}
+	rowsAround = rows[args.idx+1 : args.idx+countRows+1]
+	for _, v := range rowsAround {
+		fmt.Println(v)
+	}
+	fmt.Println()
 }
