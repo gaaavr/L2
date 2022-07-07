@@ -55,9 +55,7 @@ func setFlags() (join, error) {
 	// Определяем флаги командной строки и парсим их в переменные
 	flag.DurationVar(&t, "timeout", 10*time.Second, "Таймаут на подключение к серверу")
 	flag.Parse()
-	if len(flag.Args()) != 2 {
-		return join{}, fmt.Errorf("invalid count of arguments")
-	}
+
 	h = flag.Arg(0)
 	p = flag.Arg(1)
 
@@ -72,49 +70,50 @@ func setFlags() (join, error) {
 
 // Метод для подключения к серверу
 func (j *join) client() error {
-	con, err := net.DialTimeout("tcp", j.host+":"+j.port, j.timeout)
+	con, err := net.DialTimeout("tcp", "localhost"+":"+"8080", j.timeout)
 	if err != nil {
 		return err
 	}
 	defer func() {
-		//закрываем соединение с сервером при выходе из программы
+		//закрываем соединение с хостом при выходе из программы
 		fmt.Println("Close connection")
 		con.Close()
 	}()
-	// Создаём канал для отслеживания сигналов от ОС
-	sign := make(chan os.Signal)
+	// Создаём канал для отслеживания сигналов от ОС, также канал для отлавливания ошибки
+	sign, errCh := make(chan os.Signal), make(chan error)
 	// При поступлении сигнала от ОС он поступит в канал, в этом случае соединение закроется
 	// и программа завершит работу
-	signal.Notify(sign, syscall.SIGQUIT)
-	go func() {
-		for {
-			select {
-			case <-sign:
-				con.Close()
-				return
-			default:
-			}
-		}
-	}()
-	// Читаем сообщение от сервера
+	signal.Notify(sign, syscall.SIGINT)
+	// Читаем сообщение от хоста
 	reader, err := bufio.NewReader(con).ReadString('\n')
 	if err != nil {
 		return err
 	}
 	fmt.Print(reader)
 	scanner := bufio.NewScanner(os.Stdin)
-	// Со стандартоного ввода получаем строки и отправляем на сервер, который возвращает
+	// Со стандартоного ввода получаем строки и отправляем хосту, который возвращает
 	// нам эти строки в верхнем регистре
-	for scanner.Scan() {
-		_, err := con.Write([]byte(scanner.Text() + "\n"))
-		if err != nil {
-			return err
+	go func() {
+		for scanner.Scan() {
+			_, err := con.Write([]byte(scanner.Text() + "\n"))
+			if err != nil {
+				errCh <- err
+			}
+			line, err := bufio.NewReader(con).ReadString('\n')
+			if err != nil {
+				errCh <- err
+			}
+			os.Stdout.Write([]byte(line))
 		}
-		line, err := bufio.NewReader(con).ReadString('\n')
-		if err != nil {
-			return err
-		}
-		os.Stdout.Write([]byte(line))
+	}()
+
+	select {
+	case <-sign:
+		fmt.Println("Signal received")
+		return nil
+	case <-errCh:
+		return err
 	}
+
 	return nil
 }
