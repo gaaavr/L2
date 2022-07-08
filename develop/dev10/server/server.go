@@ -20,7 +20,8 @@ func main() {
 	for {
 		con, err := lis.Accept()
 		if err != nil {
-			log.Fatalln(err)
+			log.Println(err)
+			continue
 		}
 		_, err = con.Write([]byte("Welcome to localhost:8080. I change the letter case to capital.\n"))
 		if err != nil {

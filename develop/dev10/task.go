@@ -55,7 +55,9 @@ func setFlags() (join, error) {
 	// Определяем флаги командной строки и парсим их в переменные
 	flag.DurationVar(&t, "timeout", 10*time.Second, "Таймаут на подключение к серверу")
 	flag.Parse()
-
+	if len(flag.Args()) != 2 {
+		return join{}, fmt.Errorf("invalid count of arguments")
+	}
 	h = flag.Arg(0)
 	p = flag.Arg(1)
 
@@ -70,7 +72,7 @@ func setFlags() (join, error) {
 
 // Метод для подключения к серверу
 func (j *join) client() error {
-	con, err := net.DialTimeout("tcp", "localhost"+":"+"8080", j.timeout)
+	con, err := net.DialTimeout("tcp", j.host+":"+j.port, j.timeout)
 	if err != nil {
 		return err
 	}
@@ -98,10 +100,14 @@ func (j *join) client() error {
 			_, err := con.Write([]byte(scanner.Text() + "\n"))
 			if err != nil {
 				errCh <- err
+				close(errCh)
+				break
 			}
 			line, err := bufio.NewReader(con).ReadString('\n')
 			if err != nil {
 				errCh <- err
+				close(errCh)
+				break
 			}
 			os.Stdout.Write([]byte(line))
 		}
@@ -111,7 +117,7 @@ func (j *join) client() error {
 	case <-sign:
 		fmt.Println("Signal received")
 		return nil
-	case <-errCh:
+	case err := <-errCh:
 		return err
 	}
 
