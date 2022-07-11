@@ -15,7 +15,7 @@ func TestFindAnagrams(t *testing.T) {
 			"first test: correct",
 			[]string{"пятка", "слиток", "пятак", "тяпка", "столик"},
 			map[string][]string{
-				"пятак":  {"пятка", "тяпка"},
+				"пятка":  {"пятак", "тяпка"},
 				"слиток": {"столик"},
 			},
 		},
@@ -23,7 +23,7 @@ func TestFindAnagrams(t *testing.T) {
 			"second test: different register",
 			[]string{"пЯтКа", "сЛиток", "пяТАк", "ТЯПКА", "столик"},
 			map[string][]string{
-				"пятак":  {"пятка", "тяпка"},
+				"пятка":  {"пятак", "тяпка"},
 				"слиток": {"столик"},
 			},
 		},
